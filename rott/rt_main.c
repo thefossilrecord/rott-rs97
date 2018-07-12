@@ -1201,8 +1201,8 @@ void GameLoop (void)
                      {
                      break;
                      }
-
-					DoCreditScreen ();
+		//Commented out for now as this crashes RS97 back to menu.
+		//DoCreditScreen ();
                   if ((!LastScan) && (!IN_GetMouseButtons()))
                      CheckHighScore (0, 0, false);
 #if (SHAREWARE==0)

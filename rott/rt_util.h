@@ -105,6 +105,10 @@ void AbortCheck (char * abortstring);
 
 void FixFilePath(char *filename);
 
+#ifdef USE_SDL
+#include "SDL.h"
+extern SDL_Color pseudo_cmap[256];
+#endif
 
 #if PLATFORM_WIN32
 #include <io.h>

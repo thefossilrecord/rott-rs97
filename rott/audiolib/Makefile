@@ -1,13 +1,18 @@
 AUDIOLIB ?= audiolib.a
 
-AR ?= ar
-CC ?= gcc
+TOOLCHAIN = /opt/retrogame-toolchain/usr
+SDL_CONFIG  = $(TOOLCHAIN)/mipsel-buildroot-linux-uclibc/sysroot/usr/bin/sdl-config
+
+CC = $(TOOLCHAIN)/bin/mipsel-linux-gcc
+
+AR = $(TOOLCHAIN)/bin/mipsel-linux-ar
+CC = $(TOOLCHAIN)/bin/mipsel-linux-gcc
 RANLIB ?= ranlib
 
 ARFLAGS ?= rcT
 CFLAGS ?= -g -O2
 CFLAGS += -Wall
-CFLAGS += $(shell sdl-config --cflags)
+CFLAGS += `$(SDL_CONFIG) --cflags`
 
 OBJS :=
 OBJS += fx_man.o

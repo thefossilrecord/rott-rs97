@@ -196,7 +196,7 @@ void DisplayTextSplash(byte *text, int l)
 
 	printf ("\033[m");
 }
-
+/*
 #if !defined(__CYGWIN__) && !defined(__MINGW32__)
 #include <execinfo.h>
 
@@ -214,21 +214,21 @@ void print_stack (int level)
 		printf ("\t%s\n",syms[i]);
 	}
 	free (syms);
-	/*
-	for (i = 2; i <size; ++i) {
-		printf ("\t%p\n", array[i]);
-	}
-	*/
+	//
+	//for (i = 2; i <size; ++i) {
+	//	printf ("\t%p\n", array[i]);
+	//}
+	///
 	printf ("}\n");
 }
 #else
-
+*/
 void print_stack (int level)
 {
         printf("Stack dump not implemented.\n");
 }
 
-#endif
+//#endif
 
 void crash_print (int sig)
 {

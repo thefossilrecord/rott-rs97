@@ -69,6 +69,8 @@ static boolean SoftErrorStarted=false;
 static boolean DebugStarted=false;
 static boolean MapDebugStarted=false;
 
+SDL_Color pseudo_cmap[MAX_PALETTE_COLOURS];
+
 static unsigned char egargb[48]={ 0x00,0x00,0x00,
 									 0x00,0x00,0xab,
                             0x00,0xab,0x00,
@@ -1251,13 +1253,26 @@ void GetaPalette (byte *palette)
 	int i;
 	SDL_Palette *pal = SDL_GetVideoSurface()->format->palette;
 	
-	for (i = 0; i < 256; i++) {
-		palette[0] = pal->colors[i].r;
-		palette[1] = pal->colors[i].g;
-		palette[2] = pal->colors[i].b;
-		
-		palette += 3;
-	}
+	if(pal)
+		{
+		for (i = 0; i < 256; i++) {
+			palette[0] = pal->colors[i].r;
+			palette[1] = pal->colors[i].g;
+			palette[2] = pal->colors[i].b;
+
+			palette += 3;
+		}
+		}
+	else
+		{
+		for (i = 0; i < 256; i++) {
+			palette[0] = pseudo_cmap[i].r;
+			palette[1] = pseudo_cmap[i].g;
+			palette[2] = pseudo_cmap[i].b;
+
+			palette += 3;
+		}
+		}
 #endif
 }
 
@@ -1280,17 +1295,19 @@ void SetaPalette (byte *pal)
 	for (i=0 ; i<768 ; i++)
 		OUTP (PEL_DATA, pal[i]>>2);
 #else
-   SDL_Color cmap[256];
+   //SDL_Color cmap[256];
    int i;
 
    for (i = 0; i < 256; i++)
    {
-	   cmap[i].r = pal[i*3+0];
-	   cmap[i].g = pal[i*3+1];
-	   cmap[i].b = pal[i*3+2];
+	   pseudo_cmap[i].r = pal[i*3+0];
+	   pseudo_cmap[i].g = pal[i*3+1];
+	   pseudo_cmap[i].b = pal[i*3+2];
    }
 
-   SDL_SetColors (SDL_GetVideoSurface (), cmap, 0, 256);
+   SDL_SetColors (SDL_GetVideoSurface (), pseudo_cmap, 0, MAX_PALETTE_COLOURS);
+   update_rgb_lookup();
+   rgb_blit();
 #endif
 }
 
@@ -1306,13 +1323,26 @@ void GetPalette(char * palette)
 	int i;
 	SDL_Palette *pal = SDL_GetVideoSurface()->format->palette;
 	
-	for (i = 0; i < 256; i++) {
-		palette[0] = pal->colors[i].r;
-		palette[1] = pal->colors[i].g;
-		palette[2] = pal->colors[i].b;
-		
-		palette += 3;
+	if(pal)
+		{
+		for (i = 0; i < 256; i++) {
+			palette[0] = pal->colors[i].r;
+			palette[1] = pal->colors[i].g;
+			palette[2] = pal->colors[i].b;
+
+			palette += 3;
+		}
 	}
+	else
+		{
+		for (i = 0; i < 256; i++) {
+			palette[0] = pseudo_cmap[i].r;
+			palette[1] = pseudo_cmap[i].g;
+			palette[2] = pseudo_cmap[i].b;
+
+			palette += 3;
+		}
+		}
 #endif
 }
 
@@ -1395,17 +1425,19 @@ void VL_FillPalette (int red, int green, int blue)
       OUTP (PEL_DATA,blue);
    }
 #else
-   SDL_Color cmap[256];
+   //SDL_Color cmap[256];
    int i;
 
    for (i = 0; i < 256; i++)
    {
-           cmap[i].r = red << 2;
-           cmap[i].g = green << 2;
-           cmap[i].b = blue << 2;
+           pseudo_cmap[i].r = red << 2;
+           pseudo_cmap[i].g = green << 2;
+           pseudo_cmap[i].b = blue << 2;
    }
 
-   SDL_SetColors (SDL_GetVideoSurface (), cmap, 0, 256);
+   SDL_SetColors (SDL_GetVideoSurface (), pseudo_cmap, 0, MAX_PALETTE_COLOURS);
+   update_rgb_lookup();
+   rgb_blit();
 #endif
 }
 
@@ -1495,17 +1527,19 @@ void VL_SetPalette (byte *palette)
       OUTP (PEL_DATA, gammatable[(gammaindex<<6)+(*palette++)]);
       }
 #else
-   SDL_Color cmap[256];
+   //SDL_Color cmap[256];
    int i;
 
    for (i = 0; i < 256; i++)
    {
-	   cmap[i].r = gammatable[(gammaindex<<6)+(*palette++)] << 2;
-	   cmap[i].g = gammatable[(gammaindex<<6)+(*palette++)] << 2;
-	   cmap[i].b = gammatable[(gammaindex<<6)+(*palette++)] << 2;
+	   pseudo_cmap[i].r = gammatable[(gammaindex<<6)+(*palette++)] << 2;
+	   pseudo_cmap[i].g = gammatable[(gammaindex<<6)+(*palette++)] << 2;
+	   pseudo_cmap[i].b = gammatable[(gammaindex<<6)+(*palette++)] << 2;
    }
 
-   SDL_SetColors (SDL_GetVideoSurface (), cmap, 0, 256);
+   SDL_SetColors (SDL_GetVideoSurface (), pseudo_cmap, 0, MAX_PALETTE_COLOURS);
+   update_rgb_lookup();
+   rgb_blit();
 #endif
 }
 
@@ -1536,13 +1570,27 @@ void VL_GetPalette (byte *palette)
 	int i;
 	SDL_Palette *pal = SDL_GetVideoSurface()->format->palette;
 	
-	for (i = 0; i < 256; i++) {
-		palette[0] = pal->colors[i].r >> 2;
-		palette[1] = pal->colors[i].g >> 2;
-		palette[2] = pal->colors[i].b >> 2;
-		
-		palette += 3;
-	}
+	if(pal)
+		{
+		for (i = 0; i < 256; i++) {
+			palette[0] = pal->colors[i].r >> 2;
+			palette[1] = pal->colors[i].g >> 2;
+			palette[2] = pal->colors[i].b >> 2;
+
+			palette += 3;
+
+		}
+		}
+	else
+		{
+		for (i = 0; i < 256; i++) {
+			palette[0] = pseudo_cmap[i].r >> 2;
+			palette[1] = pseudo_cmap[i].g >> 2;
+			palette[2] = pseudo_cmap[i].b >> 2;
+
+			palette += 3;
+		}
+		}
 #endif
 }
 

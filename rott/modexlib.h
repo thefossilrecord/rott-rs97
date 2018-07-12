@@ -136,6 +136,10 @@ void  XFlipPage ( void );
 void  WaitVBL( void );
 void  TurnOffTextCursor ( void );
 
+void update_rgb_lookup();
+void rgb_blit();
+#define MAX_PALETTE_COLOURS 256
+
 #ifdef __WATCOMC__
 #pragma aux VGAWRITEMAP =      \
         "mov    eax,01H"       \

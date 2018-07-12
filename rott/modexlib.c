@@ -419,6 +419,7 @@ void XFlipPage ( void )
 ====================
 */
 static SDL_Surface *sdl_surface = NULL;
+static SDL_Surface *rgb_surface = NULL;
 static SDL_Surface *unstretch_sdl_surface = NULL;
 
 void GraphicsMode ( void )
@@ -441,11 +442,21 @@ void GraphicsMode ( void )
 //    sdl_surface = SDL_SetVideoMode (320, 200, 8, flags);
     if (sdl_fullscreen)
         flags = SDL_FULLSCREEN;
-    sdl_surface = SDL_SetVideoMode (iGLOBAL_SCREENWIDTH, iGLOBAL_SCREENHEIGHT, 8, flags);    
-	if (sdl_surface == NULL)
+
+    flags |= SDL_HWSURFACE;
+
+    rgb_surface = SDL_SetVideoMode (320, 480, 16, flags);
+	if (rgb_surface == NULL)
 	{
 		Error ("Could not set video mode\n");
-	} 
+	}
+
+   sdl_surface = SDL_CreateRGBSurface(SDL_SWSURFACE,
+         iGLOBAL_SCREENWIDTH, iGLOBAL_SCREENHEIGHT, 8, 0, 0, 0, 0);
+	if (sdl_surface == NULL)
+	{
+		Error ("Could not create RGB surface\n");
+	}
 }
 
 /*
@@ -460,10 +471,14 @@ void SetTextMode ( void )
 	if (SDL_WasInit(SDL_INIT_VIDEO) == SDL_INIT_VIDEO) {
 		if (sdl_surface != NULL) {
 			SDL_FreeSurface(sdl_surface);
-	
+
 			sdl_surface = NULL;
 		}
-		
+		if (rgb_surface != NULL) {
+			SDL_FreeSurface(rgb_surface);
+
+			rgb_surface = NULL;
+		}
 		SDL_QuitSubSystem (SDL_INIT_VIDEO);
 	}
 }
@@ -682,18 +697,49 @@ void VL_DePlaneVGA (void)
 {
 }
 
+unsigned short rgb_lookup[MAX_PALETTE_COLOURS] = {0};
+
+void update_rgb_lookup()
+	{
+	for(int index = 0; index < MAX_PALETTE_COLOURS; index++)
+		rgb_lookup[index] = SDL_MapRGB(rgb_surface->format, pseudo_cmap[index].r, pseudo_cmap[index].g, pseudo_cmap[index].b);
+
+	}
+
+void rgb_blit()
+	{
+	unsigned char *src_pixel = sdl_surface->pixels;
+	unsigned short *dest_pixel = rgb_surface->pixels, *prev_line = dest_pixel;
+
+	for(int yc = 0; yc < 200; yc++)
+		{
+		for(int xc = 0; xc < 320; xc++)
+			{
+			*dest_pixel = rgb_lookup[*src_pixel];
+			src_pixel++;
+			dest_pixel++;
+			}
+
+		memcpy(dest_pixel, prev_line, 320 * sizeof(unsigned short));
+		dest_pixel = dest_pixel + 320;
+		prev_line = dest_pixel;
+		}
+
+	SDL_UpdateRect (rgb_surface, 0, 0, 0, 0);
+	}
+
 
 /* C version of rt_vh_a.asm */
 
 void VH_UpdateScreen (void)
-{ 	
-
+{
 	if (StretchScreen){//bna++
 		StretchMemPicture ();
 	}else{
 		DrawCenterAim ();
 	}
-	SDL_UpdateRect (SDL_GetVideoSurface (), 0, 0, 0, 0);
+
+	rgb_blit();
 }
 
 
@@ -726,8 +772,8 @@ void XFlipPage ( void )
 	}else{
 		DrawCenterAim ();
 	}
-   SDL_UpdateRect (sdl_surface, 0, 0, 0, 0);
- 
+   //SDL_UpdateRect (sdl_surface, 0, 0, 0, 0);
+	rgb_blit();
 #endif
 }
 
@@ -786,7 +832,25 @@ static void StretchMemPicture ()
   dest.y = 0;
   dest.w = iGLOBAL_SCREENWIDTH;
   dest.h = iGLOBAL_SCREENHEIGHT;
-  SDL_SoftStretch(unstretch_sdl_surface, &src, sdl_surface, &dest);
+
+  unsigned char *src_pixel = unstretch_sdl_surface->pixels;
+  unsigned short *dest_pixel = rgb_surface->pixels;
+
+  for(int yc = 0; yc < 400; yc++)
+	{
+	  for(int xc = 0; xc < 320; xc++)
+		{
+		unsigned short rgb16 = SDL_MapRGB(rgb_surface->format, pseudo_cmap[*src_pixel].r, pseudo_cmap[*src_pixel].g, pseudo_cmap[*src_pixel].b);
+
+		*dest_pixel = rgb16;
+
+		src_pixel++;
+		dest_pixel++;
+
+		}
+	}
+
+  //SDL_SoftStretch(rgb_surface, &src, sdl_surface, &dest);
 }
 
 // bna function added start

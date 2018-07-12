@@ -1030,6 +1030,9 @@ void ReadConfig (void)
       Z_Free(scriptbuffer);
       }
 
+   iGLOBAL_SCREENWIDTH = 320;
+   iGLOBAL_SCREENHEIGHT = 200;
+
    GetPathFromEnvironment( filename, ApogeePath, BattleName );
    SetBattleDefaultValues ();
    if (access(filename,F_OK)==0)
