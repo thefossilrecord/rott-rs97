@@ -709,7 +709,7 @@ void update_rgb_lookup()
 void rgb_blit()
 	{
 	unsigned char *src_pixel = sdl_surface->pixels;
-	unsigned short *dest_pixel = rgb_surface->pixels, *prev_line = dest_pixel;
+	unsigned short *dest_pixel = rgb_surface->pixels+2560*9, *prev_line = dest_pixel;
 
 	for(int yc = 0; yc < 200; yc++)
 		{
